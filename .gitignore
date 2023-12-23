@@ -1,0 +1,19 @@
+node_modules
+.env
+coverage
+coverage.json
+typechain
+.openzeppelin
+yarn.lock
+package-lock.json
+
+# Hardhat files
+cache
+artifacts
+
+# Mac files
+.DS_Store
+
+# Code editor files
+*.code-workspace
+.vscode
