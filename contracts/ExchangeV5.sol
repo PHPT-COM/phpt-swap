@@ -34,8 +34,8 @@ contract ExchangeV4 is PausableUpgradeable, OwnableUpgradeable {
     uint256 public minOracelTimeUpdate;
     uint256 public lastOracelTimeUpdate;
 
-    uint256 public sellfee;
-    uint256 public buyfee;
+    uint256 public sellFee;
+    uint256 public buyFee;
         /**
      *  @dev Emitted when user stakes 'stakedAmount' value of tokens
      */
@@ -225,10 +225,10 @@ contract ExchangeV4 is PausableUpgradeable, OwnableUpgradeable {
         bulkRateCoefficient1 = _coefficient;
     }
 
-    function setBothSellBuyStandardFessInWei(uint _buyfee,  uint _sellfee) public nonZero(_buyfee) nonZero(_sellfee) whenNotPaused{
+    function setBothUsdtPhptSellAndBuyStandardFessInWei(uint256 _buyfee,  uint256 _sellfee) public nonZero(_buyfee) nonZero(_sellfee) whenNotPaused{
             require(msg.sender == watcher || msg.sender == owner(), 'Exchange: caller is not the owner');
-            sellfee = _sellfee
-            buyfee = _buyfee
+            sellfee = _sellfee;
+            buyFee = _buyfee;
     }
 
     function getSellStandardFessInWei() public whenNotPaused{
@@ -236,8 +236,9 @@ contract ExchangeV4 is PausableUpgradeable, OwnableUpgradeable {
     }
 
      function getBuyStandardFessInWei() public whenNotPaused{
-        return  buyfee;
+        return  buyFee;
     }
+
     
     function withdrawPhpt(uint256 _amount) public onlyOwner {
         IERC20Upgradeable(phptAddr).safeTransfer(owner(), _amount);
