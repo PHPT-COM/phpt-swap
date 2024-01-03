@@ -5,7 +5,6 @@ import { PausableUpgradeable } from '@openzeppelin/contracts-upgradeable/securit
 import { OwnableUpgradeable } from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 
 import { IERC20Upgradeable } from '@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol';
-import '@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol';
 import 'hardhat/console.sol';
 
 contract ExchangeV4 is PausableUpgradeable, OwnableUpgradeable {
@@ -54,9 +53,14 @@ contract ExchangeV4 is PausableUpgradeable, OwnableUpgradeable {
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
 
-    function initialize(address _phptAddr, address _usdtAddr) public initializer {
+    function initialize(address _phptAddr, address _usdtAddr) external initializer {
         __Pausable_init();
         __Ownable_init();
+        //F-2023-0203
+        // Check that the PHPT address is not the zero address
+        require(_phptAddr != address(0), 'PHPT address cannot be the zero address');
+        // Check that the USDT address is not the zero address
+        require(_usdtAddr != address(0), 'USDT address cannot be the zero address');
         phptAddr = _phptAddr;
         usdtAddr = _usdtAddr;
         minOracelTimeUpdate= 1 minutes;
@@ -68,6 +72,9 @@ contract ExchangeV4 is PausableUpgradeable, OwnableUpgradeable {
      * @param _amountIn amount of tokens with 18 decimals
      */
     function exchange(Tokens _tokenIn, uint256 _amountIn) external whenNotPaused {
+
+
+
         require((block.timestamp - lastOracelTimeUpdate) <=  minOracelTimeUpdate,'Exchange not allow');
         uint256 _minimalAmountIn = getMinimalExchangeThreshold(_tokenIn);
         require(_amountIn >= _minimalAmountIn, 'Exchange: amount in must be greater than minimal exchange threshold');
