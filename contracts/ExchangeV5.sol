@@ -222,7 +222,9 @@ contract ExchangeV4 is PausableUpgradeable, OwnableUpgradeable {
     }
 
     function setPhptToUsdtBulkCoefficient(uint256 _coefficient) public nonZero(_coefficient) whenNotPaused onlyOwner {
-        bulkRateCoefficient2 = _coefficient;
+        _pause(); //Set contract on pause
+            bulkRateCoefficient2 = _coefficient; //Update coeffs and rates
+        _unpause(); //Unpause
         emit PhptToUsdtBulkCoefficientSet(_coefficient)
     }
 
@@ -242,7 +244,9 @@ contract ExchangeV4 is PausableUpgradeable, OwnableUpgradeable {
     }
 
     function setUsdtToPhptBulkCoefficient(uint256 _coefficient) public nonZero(_coefficient) whenNotPaused onlyOwner {
-        bulkRateCoefficient1 = _coefficient;
+         _pause(); //Set contract on pause
+            bulkRateCoefficient1 = _coefficient;
+        _unpause(); //Unpause
         emit UsdtToPhptBulkCoefficientSet(_coefficient);
     }
 
