@@ -54,10 +54,12 @@ contract ExchangeV4 is PausableUpgradeable, OwnableUpgradeable {
     function initialize(address _phptAddr, address _usdtAddr) public initializer {
         __Pausable_init();
         __Ownable_init();
-         // Check that the PHPT address is not the zero address
+        
+        // Check that the PHPT address is not the zero address
         require(_phptAddr != address(0), 'PHPT address cannot be the zero address');
         // Check that the USDT address is not the zero address
         require(_usdtAddr != address(0), 'USDT address cannot be the zero address');
+        
         phptAddr = _phptAddr;
         usdtAddr = _usdtAddr;
         minOracelTimeUpdate= 1 minutes;
