@@ -5,6 +5,7 @@ import { PausableUpgradeable } from '@openzeppelin/contracts-upgradeable/securit
 import { OwnableUpgradeable } from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 
 import { IERC20Upgradeable } from '@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol';
 import 'hardhat/console.sol';
 
 contract ExchangeV4 is PausableUpgradeable, OwnableUpgradeable {
@@ -32,9 +33,6 @@ contract ExchangeV4 is PausableUpgradeable, OwnableUpgradeable {
     uint256 public constant BULKRATEDENOMINATIOR = 100;
     uint256 public minOracelTimeUpdate;
     uint256 public lastOracelTimeUpdate;
-
-    uint256 public sellFee;
-    uint256 public buyFee;
         /**
      *  @dev Emitted when user stakes 'stakedAmount' value of tokens
      */
@@ -53,18 +51,27 @@ contract ExchangeV4 is PausableUpgradeable, OwnableUpgradeable {
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
 
-    function initialize(address _phptAddr, address _usdtAddr) external initializer {
+    function initialize(address _phptAddr, address _usdtAddr) public initializer {
         __Pausable_init();
         __Ownable_init();
-        //F-2023-0203
-        // Check that the PHPT address is not the zero address
-        require(_phptAddr != address(0), 'PHPT address cannot be the zero address');
-        // Check that the USDT address is not the zero address
-        require(_usdtAddr != address(0), 'USDT address cannot be the zero address');
         phptAddr = _phptAddr;
         usdtAddr = _usdtAddr;
         minOracelTimeUpdate= 1 minutes;
     }
+
+    
+    ///Missing Events - Info
+    event WatcherSet(address indexed watcher);
+    event PhptToUsdtThresholdSet(uint256 threshold);
+    event UsdtToPhptThresholdSet(uint256 threshold);
+    event PhptMinimalExchangeThresholdSet(uint256 threshold);
+    event UsdtMinimalExchangeThresholdSet(uint256 threshold);
+    event PhptToUsdtStandardRateSet(uint256 rate);
+    event PhptToUsdtBulkCoefficientSet(uint256 coefficient);
+    event UsdtToPhptStandardRateSet(uint256 rate);
+    event UsdtToPhptBulkCoefficientSet(uint256 coefficient);
+    event PhptWithdrawn(address indexed to, uint256 amount);
+    event UsdtWithdrawn(address indexed to, uint256 amount);
 
     /**
      * Exchange one type of tokens to another
@@ -72,9 +79,6 @@ contract ExchangeV4 is PausableUpgradeable, OwnableUpgradeable {
      * @param _amountIn amount of tokens with 18 decimals
      */
     function exchange(Tokens _tokenIn, uint256 _amountIn) external whenNotPaused {
-
-
-
         require((block.timestamp - lastOracelTimeUpdate) <=  minOracelTimeUpdate,'Exchange not allow');
         uint256 _minimalAmountIn = getMinimalExchangeThreshold(_tokenIn);
         require(_amountIn >= _minimalAmountIn, 'Exchange: amount in must be greater than minimal exchange threshold');
@@ -172,14 +176,17 @@ contract ExchangeV4 is PausableUpgradeable, OwnableUpgradeable {
 
     function setWatcher(address _watcher) public onlyOwner {
         watcher = _watcher;
+        emit WatcherSet(_watcher);
     }
 
     function setPhptToUsdtThresholdInWei(uint256 _threshold) public nonZero(_threshold) whenNotPaused onlyOwner {
         phptToUsdtThresholdInWei = _threshold;
+        emit PhptToUsdtThresholdSet(_threshold);
     }
 
     function setUsdtToPhptThresholdInWei(uint256 _threshold) public nonZero(_threshold) whenNotPaused onlyOwner {
         usdtToPhptThresholdInWei = _threshold;
+        emit UsdtToPhptThresholdSet(_threshold);
     }
     
     function setMinOracelTimeUpdate(uint256 _minOracelTimeUpdate) public nonZero(_minOracelTimeUpdate) whenNotPaused
@@ -194,6 +201,7 @@ contract ExchangeV4 is PausableUpgradeable, OwnableUpgradeable {
         onlyOwner
     {
         phptMinimalExchangeThresholdInWei = _threshold;
+        emit PhptMinimalExchangeThresholdSet(_threshold)
     }
 
     function setUsdtMinimalExchangeThresholdInWei(uint256 _threshold)
@@ -203,22 +211,28 @@ contract ExchangeV4 is PausableUpgradeable, OwnableUpgradeable {
         onlyOwner
     {
         usdtMinimalExchangeThresholdInWei = _threshold;
+        emit UsdtMinimalExchangeThresholdSet(_threshold);
     }
 
     function setPhptToUsdtStandartRateInWei(uint256 _rate) public nonZero(_rate) whenNotPaused {
         require(msg.sender == watcher || msg.sender == owner(), 'Exchange: caller is not the owner');
         phptToUsdtStandartRateInWei = _rate;
         lastOracelTimeUpdate=block.timestamp;
+        emit PhptToUsdtStandardRateSet(_rate);
     }
 
     function setPhptToUsdtBulkCoefficient(uint256 _coefficient) public nonZero(_coefficient) whenNotPaused onlyOwner {
-        bulkRateCoefficient2 = _coefficient;
+        _pause(); //Set contract on pause
+            bulkRateCoefficient2 = _coefficient; //Update coeffs and rates
+        _unpause(); //Unpause
+        emit PhptToUsdtBulkCoefficientSet(_coefficient)
     }
 
     function setUsdtToPhptStandartRateInWei(uint256 _rate) public nonZero(_rate) whenNotPaused {
         require(msg.sender == watcher || msg.sender == owner(), 'Exchange: caller is not the owner');
         usdtToPhptStandartRateInWei = _rate;
         lastOracelTimeUpdate=block.timestamp;
+        emit UsdtToPhptStandardRateSet(_rate);
     }
     // funcation both price togather
     function setBothUsdtPhptStandartRateInWei(uint256 _rateusdt, uint256 _ratephpt) public nonZero(_rateusdt) nonZero(_ratephpt) whenNotPaused {
@@ -226,33 +240,24 @@ contract ExchangeV4 is PausableUpgradeable, OwnableUpgradeable {
         usdtToPhptStandartRateInWei = _rateusdt;
         phptToUsdtStandartRateInWei = _ratephpt;
         lastOracelTimeUpdate=block.timestamp;
+         
     }
 
     function setUsdtToPhptBulkCoefficient(uint256 _coefficient) public nonZero(_coefficient) whenNotPaused onlyOwner {
-        bulkRateCoefficient1 = _coefficient;
+         _pause(); //Set contract on pause
+            bulkRateCoefficient1 = _coefficient;
+        _unpause(); //Unpause
+        emit UsdtToPhptBulkCoefficientSet(_coefficient);
     }
 
-    function setBothSellAndBuyStandardFessInWei(uint256 _buyfee,  uint256 _sellfee) public nonZero(_buyfee) nonZero(_sellfee) whenNotPaused{
-            require(msg.sender == watcher || msg.sender == owner(), 'Exchange: caller is not the owner');
-            sellfee = _sellfee;
-            buyFee = _buyfee;
-    }
-
-    function getSellStandardFessInWei() public whenNotPaused{
-        return  sellfee;
-    }
-
-     function getBuyStandardFessInWei() public whenNotPaused{
-        return  buyFee;
-    }
-
-    
     function withdrawPhpt(uint256 _amount) public onlyOwner {
         IERC20Upgradeable(phptAddr).safeTransfer(owner(), _amount);
+        emit PhptWithdrawn(phptAddr , _amount);
     }
 
     function withdrawUsdt(uint256 _amount) public onlyOwner {
         IERC20Upgradeable(usdtAddr).safeTransfer(owner(), _amount);
+        emit UsdtWithdrawn(usdtAddr, _amount);
     }
 
     function pause() public onlyOwner {
