@@ -238,11 +238,11 @@ contract ExchangeV4 is PausableUpgradeable, OwnableUpgradeable {
             buyFee = _buyfee;
     }
 
-    function getSellStandardFessInWei() public whenNotPaused returns (uint) {
+    function getSellStandardFessInWei() public view whenNotPaused returns (uint) {
         return  sellFee;
     }
 
-     function getBuyStandardFessInWei() public whenNotPaused returns (uint) {
+     function getBuyStandardFessInWei() public view whenNotPaused returns (uint) {
         return  buyFee;
     }
 
