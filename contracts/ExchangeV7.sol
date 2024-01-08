@@ -205,7 +205,7 @@ contract ExchangeV4 is PausableUpgradeable, OwnableUpgradeable {
         onlyOwner
     {
         phptMinimalExchangeThresholdInWei = _threshold;
-        emit PhptMinimalExchangeThresholdSet(_threshold)
+        emit PhptMinimalExchangeThresholdSet(_threshold);
     }
 
     function setUsdtMinimalExchangeThresholdInWei(uint256 _threshold)
@@ -229,7 +229,7 @@ contract ExchangeV4 is PausableUpgradeable, OwnableUpgradeable {
         _pause(); //Set contract on pause
             bulkRateCoefficient2 = _coefficient; //Update coeffs and rates
         _unpause(); //Unpause
-        emit PhptToUsdtBulkCoefficientSet(_coefficient)
+        emit PhptToUsdtBulkCoefficientSet(_coefficient);
     }
 
     function setUsdtToPhptStandartRateInWei(uint256 _rate) public nonZero(_rate) whenNotPaused {

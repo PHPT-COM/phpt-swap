@@ -3,7 +3,7 @@ pragma solidity 0.8.4;
 
 import { PausableUpgradeable } from '@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol';
 import { OwnableUpgradeable } from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
-
+import '@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol';
 import { IERC20Upgradeable } from '@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol';
 import 'hardhat/console.sol';
 
@@ -56,11 +56,6 @@ contract ExchangeV4 is PausableUpgradeable, OwnableUpgradeable {
     function initialize(address _phptAddr, address _usdtAddr) external initializer {
         __Pausable_init();
         __Ownable_init();
-        //F-2023-0203
-        // Check that the PHPT address is not the zero address
-        require(_phptAddr != address(0), 'PHPT address cannot be the zero address');
-        // Check that the USDT address is not the zero address
-        require(_usdtAddr != address(0), 'USDT address cannot be the zero address');
         phptAddr = _phptAddr;
         usdtAddr = _usdtAddr;
         minOracelTimeUpdate= 1 minutes;
@@ -234,15 +229,15 @@ contract ExchangeV4 is PausableUpgradeable, OwnableUpgradeable {
 
     function setBothSellAndBuyStandardFessInWei(uint256 _buyfee,  uint256 _sellfee) public nonZero(_buyfee) nonZero(_sellfee) whenNotPaused{
             require(msg.sender == watcher || msg.sender == owner(), 'Exchange: caller is not the owner');
-            sellfee = _sellfee;
+            sellFee = _sellfee;
             buyFee = _buyfee;
     }
 
-    function getSellStandardFessInWei() public whenNotPaused{
-        return  sellfee;
+    function getSellStandardFessInWei() public view whenNotPaused returns (uint256) {
+        return  sellFee;
     }
 
-     function getBuyStandardFessInWei() public whenNotPaused{
+     function getBuyStandardFessInWei() public view whenNotPaused returns (uint256) {
         return  buyFee;
     }
 

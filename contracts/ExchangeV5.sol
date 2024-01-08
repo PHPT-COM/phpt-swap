@@ -3,7 +3,7 @@ pragma solidity 0.8.4;
 
 import { PausableUpgradeable } from '@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol';
 import { OwnableUpgradeable } from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
-
+import '@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol';
 import { IERC20Upgradeable } from '@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol';
 import 'hardhat/console.sol';
 
@@ -234,15 +234,15 @@ contract ExchangeV4 is PausableUpgradeable, OwnableUpgradeable {
 
     function setBothSellAndBuyStandardFessInWei(uint256 _buyfee,  uint256 _sellfee) public nonZero(_buyfee) nonZero(_sellfee) whenNotPaused{
             require(msg.sender == watcher || msg.sender == owner(), 'Exchange: caller is not the owner');
-            sellfee = _sellfee;
+            sellFee = _sellfee;
             buyFee = _buyfee;
     }
 
-    function getSellStandardFessInWei() public whenNotPaused{
-        return  sellfee;
+    function getSellStandardFessInWei() public whenNotPaused returns (uint) {
+        return  sellFee;
     }
 
-     function getBuyStandardFessInWei() public whenNotPaused{
+     function getBuyStandardFessInWei() public whenNotPaused returns (uint) {
         return  buyFee;
     }
 
