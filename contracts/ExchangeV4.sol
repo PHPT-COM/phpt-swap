@@ -6,7 +6,7 @@ import { OwnableUpgradeable } from '@openzeppelin/contracts-upgradeable/access/O
 
 import { IERC20Upgradeable } from '@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol';
-import 'hardhat/console.sol';
+
 
 contract ExchangeV4 is PausableUpgradeable, OwnableUpgradeable {
     using SafeERC20Upgradeable for IERC20Upgradeable;
