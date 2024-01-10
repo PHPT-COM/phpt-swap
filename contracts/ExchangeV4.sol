@@ -7,7 +7,6 @@ import { OwnableUpgradeable } from '@openzeppelin/contracts-upgradeable/access/O
 import { IERC20Upgradeable } from '@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol';
 
-
 contract ExchangeV4 is PausableUpgradeable, OwnableUpgradeable {
     using SafeERC20Upgradeable for IERC20Upgradeable;
     enum Tokens {
@@ -15,6 +14,7 @@ contract ExchangeV4 is PausableUpgradeable, OwnableUpgradeable {
         USDT
     }
 
+    bool private _paused;
     address public watcher;
 
     address public phptAddr;
@@ -47,6 +47,16 @@ contract ExchangeV4 is PausableUpgradeable, OwnableUpgradeable {
 
     modifier nonZero(uint256 _value) {
         require(_value > 0, 'Exchange: value should not be zero');
+        _;
+    }
+
+    modifier phptwhenPaused(){
+        require(_paused, 'Exchange: Contract must be paused');
+        _;
+    }
+
+    modifier phptWhenNotPaused()  {
+        require(!_paused, 'Exchange: Contract must not be paused');
         _;
     }
 
@@ -223,38 +233,34 @@ contract ExchangeV4 is PausableUpgradeable, OwnableUpgradeable {
         emit UsdtMinimalExchangeThresholdSet(_threshold);
     }
 
-    function setPhptToUsdtStandartRateInWei(uint256 _rate) public nonZero(_rate) whenNotPaused {
+    function setPhptToUsdtStandartRateInWei(uint256 _rate) public nonZero(_rate) phptwhenPaused  {
         require(msg.sender == watcher || msg.sender == owner(), 'Exchange: caller is not the owner');
         phptToUsdtStandartRateInWei = _rate;
         lastOracelTimeUpdate=block.timestamp;
          emit PhptToUsdtStandardRateSet(_rate);
     }
 
-    function setPhptToUsdtBulkCoefficient(uint256 _coefficient) public nonZero(_coefficient) whenNotPaused onlyOwner {
-         _pause(); //Set contract on pause
-            bulkRateCoefficient2 = _coefficient;//Update coeffs and rates
-         _unpause(); //Unpause
+    function setPhptToUsdtBulkCoefficient(uint256 _coefficient) public nonZero(_coefficient) phptwhenPaused onlyOwner {
+          bulkRateCoefficient2 = _coefficient;//Update coeffs and rates
           emit PhptToUsdtBulkCoefficientSet(_coefficient);
     }
 
-    function setUsdtToPhptStandartRateInWei(uint256 _rate) public nonZero(_rate) whenNotPaused {
+    function setUsdtToPhptStandartRateInWei(uint256 _rate) public nonZero(_rate) phptwhenPaused  {
         require(msg.sender == watcher || msg.sender == owner(), 'Exchange: caller is not the owner');
         usdtToPhptStandartRateInWei = _rate;
         lastOracelTimeUpdate=block.timestamp;
         emit UsdtToPhptStandardRateSet(_rate);
     }
     // funcation both price togather
-    function setBothUsdtPhptStandartRateInWei(uint256 _rateusdt, uint256 _ratephpt) public nonZero(_rateusdt) nonZero(_ratephpt) whenNotPaused {
+    function setBothUsdtPhptStandartRateInWei(uint256 _rateusdt, uint256 _ratephpt) public nonZero(_rateusdt) nonZero(_ratephpt) phptwhenPaused  {
         require(msg.sender == watcher || msg.sender == owner(), 'Exchange: caller is not the owner');
         usdtToPhptStandartRateInWei = _rateusdt;
         phptToUsdtStandartRateInWei = _ratephpt;
         lastOracelTimeUpdate=block.timestamp;
     }
 
-    function setUsdtToPhptBulkCoefficient(uint256 _coefficient) public nonZero(_coefficient) whenNotPaused onlyOwner {
-        _pause(); //Set contract on pause
-            bulkRateCoefficient1 = _coefficient;
-        _unpause(); //Unpause
+    function setUsdtToPhptBulkCoefficient(uint256 _coefficient) public nonZero(_coefficient) phptwhenPaused  onlyOwner {
+         bulkRateCoefficient1 = _coefficient;
          emit UsdtToPhptBulkCoefficientSet(_coefficient);
     }
 
