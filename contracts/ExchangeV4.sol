@@ -85,7 +85,8 @@ contract ExchangeV4 is PausableUpgradeable, OwnableUpgradeable {
      * @param _tokenIn PHPT or USDT
      * @param _amountIn amount of tokens with 18 decimals
      */
-    function exchange(Tokens _tokenIn, uint256 _amountIn) external whenNotPaused {
+
+    function exchange(Tokens _tokenIn, uint256 _amountIn, uint256 _expectedAmountOut) external whenNotPaused {
         require((block.timestamp - lastOracelTimeUpdate) <=  minOracelTimeUpdate,'Exchange not allow');
         uint256 _minimalAmountIn = getMinimalExchangeThreshold(_tokenIn);
         require(_amountIn >= _minimalAmountIn, 'Exchange: amount in must be greater than minimal exchange threshold');
@@ -96,6 +97,7 @@ contract ExchangeV4 is PausableUpgradeable, OwnableUpgradeable {
         );
         address _tokenOutAddr = getTokenOutAddr(_tokenIn);
         uint256 _amountOut = seeExchangeResult(_tokenIn, _amountIn);
+        require(_amountOut >= _expectedAmountOut, 'Exchange: received amount is less than expected');
         require(
             IERC20Upgradeable(_tokenOutAddr).balanceOf(address(this)) >= _amountOut,
             'Exchange: not enough liquidity'
