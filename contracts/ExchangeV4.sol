@@ -53,7 +53,7 @@ contract ExchangeV4 is PausableUpgradeable, OwnableUpgradeable {
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
 
-    function initialize(address _phptAddr, address _usdtAddr) public initializer {
+    function initialize(address _phptAddr, address _usdtAddr) external initializer {
         __Pausable_init();
         __Ownable_init();
         
